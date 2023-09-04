@@ -6,7 +6,9 @@ import './App.css';
 /**
  * State declaration for <App />
  */
+//interface for our state
 interface IState {
+  showGraph:Boolean,
   data: ServerRespond[],
 }
 
@@ -22,6 +24,7 @@ class App extends Component<{}, IState> {
       // data saves the server responds.
       // We use this state to parse data down to the child element (Graph) as element property
       data: [],
+      showGraph:false
     };
   }
 
@@ -29,18 +32,33 @@ class App extends Component<{}, IState> {
    * Render Graph react component with state.data parse as property data
    */
   renderGraph() {
-    return (<Graph data={this.state.data}/>)
+    if(this.state.showGraph){
+
+      return (<Graph data={this.state.data}/>)
+    }
   }
 
   /**
    * Get new data from server and update the state with the new data
    */
   getDataFromServer() {
-    DataStreamer.getData((serverResponds: ServerRespond[]) => {
-      // Update the state by creating a new array of data that consists of
-      // Previous data in the state and the new data from server
-      this.setState({ data: [...this.state.data, ...serverResponds] });
-    });
+    let msec = 0
+    //every 100 msec he'll get the data and increase the msec by 1
+    //when msec reaches 1000 it'll clear the interval 
+    const timer = setInterval(()=>{
+      DataStreamer.getData((serverResponds: ServerRespond[]) => {
+        // Update the state by creating a new array of data that consists of
+        // Previous data in the state and the new data from server
+        this.setState({ 
+          data: [...this.state.data, ...serverResponds] ,
+        showGraph:true
+                      });
+      });
+      msec++
+      if(msec>1000){
+        clearInterval(timer)
+      }
+    },100)
   }
 
   /**
